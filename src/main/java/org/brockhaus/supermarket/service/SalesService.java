@@ -1,46 +1,39 @@
 package org.brockhaus.supermarket.service;
 
-
-import org.brockhaus.supermarket.model.ProductDto;
+import org.brockhaus.supermarket.model.Product;
 import org.brockhaus.supermarket.model.ProductEntity;
+import org.brockhaus.supermarket.product.Bread;
+import org.brockhaus.supermarket.product.Cheese;
+import org.brockhaus.supermarket.product.Wine;
 import org.brockhaus.supermarket.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class SalesService {
 
-    private final ProductRepository productRepository;
-    private final ProductPricingAndQualityService pricingAndQualityService;
+    private final ProductRepository repository;
 
-    public SalesService(ProductRepository productRepository, ProductPricingAndQualityService pricingAndQualityService) {
-        this.productRepository = productRepository;
-        this.pricingAndQualityService = pricingAndQualityService;
+    public SalesService(ProductRepository repository) {
+        this.repository = repository;
     }
 
-    public List<ProductEntity> getAllProducts() {
-        return productRepository.findAll();
-    }
-
-    public List<ProductDto> processAndGetAllProducts(LocalDate today) {
-//        List<ProductEntity> products = findAllProductsOrderByCategory();
-        List<ProductEntity> products = productRepository.findAllOrderByType();
-        return products.stream().map(productEntity -> {
-                    int currentQuality = pricingAndQualityService.calculateQuality(productEntity, today);
-
-                    return ProductDto.from(productEntity,
-                            pricingAndQualityService.calculatePrice(productEntity, currentQuality), currentQuality);
-                })
-                .toList();
-    }
-
-    private List<ProductEntity> findAllProductsOrderByCategory() {
-        return productRepository.findAll()
+    public List<Product> loadAll() {
+        return repository.findAll()
                 .stream()
-                .sorted(Comparator.comparing(p -> p.getType().getCategory()))
+                .map(this::toProduct)
                 .toList();
+    }
+
+    private Product toProduct(ProductEntity e) {
+        return switch (e.getType()) {
+            case WINE   -> new Wine(e.getName(), e.getQuality(), e.getBasePrice(), e.getExpiryDate(), e.getInsertionDate());
+            case CHEESE -> new Cheese(e.getName(), e.getQuality(), e.getBasePrice(),
+                    e.getExpiryDate(), e.getInsertionDate());
+            case BREAD  -> new Bread(e.getName(), e.getQuality(), e.getBasePrice(),
+                    e.getExpiryDate(), e.getInsertionDate());
+        };
     }
 }
