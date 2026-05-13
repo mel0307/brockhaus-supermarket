@@ -10,4 +10,8 @@ public enum ProductType {
     ProductType(ProductCategory category) {
         this.category = category;
     }
+
+    public ProductCategory getCategory() {
+        return this.category;
+    }
 }

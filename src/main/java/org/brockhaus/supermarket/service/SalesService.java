@@ -8,7 +8,7 @@ import org.brockhaus.supermarket.product.Wine;
 import org.brockhaus.supermarket.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -23,6 +23,7 @@ public class SalesService {
     public List<Product> loadAll() {
         return repository.findAll()
                 .stream()
+                .sorted(Comparator.comparing(e -> e.getType().getCategory()))
                 .map(this::toProduct)
                 .toList();
     }
